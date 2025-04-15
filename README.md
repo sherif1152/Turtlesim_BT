@@ -5,9 +5,8 @@ This repository demonstrates a simple implementation of a Behavior Tree (BT) in 
 
 ## Table of Contents
 - [Overview](#overview)
-- [Setup](#setup)
 - [Behavior Tree](#behavior-tree)
-- [Launch Configuration](#launch-configuration)
+- [Setup](#setup)
 - [Running the Example](#running-the-example)
 
 ## Overview
