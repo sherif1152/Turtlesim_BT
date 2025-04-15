@@ -44,22 +44,22 @@ The behavior tree is defined in an XML file (`turtle_tree.xml`), where the turtl
    <BehaviorTree ID="MainTree">
       <Fallback name="root_fallback">
          <Sequence name="high_battery_sequence">
-         <CheckBattery />
-         <SetColorBasedOnBattery/>
-         <SaySomething message="Battery is good!" />
-         <MoveTo name="MoveToGoal" goal_x="0.2" goal_y="0.0" linear_speed="1.0" angular_speed="0.8" duration="10.0"/>
-         <DrainBattery />
-         <PrintBatteryLevel />
+            <CheckBattery />
+            <SetColorBasedOnBattery/>
+            <SaySomething message="Battery is good!" />
+            <MoveTo name="MoveToGoal" goal_x="0.2" goal_y="0.0" linear_speed="1.0" angular_speed="0.8" duration="10.0"/>
+            <DrainBattery />
+            <PrintBatteryLevel />
          </Sequence>
          <Sequence name="low_battery_sequence">
-         <Inverter>
-            <CheckBattery />
-         </Inverter>
-         <SetColorBasedOnBattery/>
-         <MoveTo name="MoveToChargeStation" goal_x="0.2" goal_y="0.2" linear_speed="1.0" angular_speed="0.0" duration="2.0"/>
-         <ChargeBattery />
-         <SaySomething message="Battery charged!" />
-         <PrintBatteryLevel />
+            <Inverter>
+               <CheckBattery />
+            </Inverter>
+            <SetColorBasedOnBattery/>
+            <MoveTo name="MoveToChargeStation" goal_x="0.2" goal_y="0.2" linear_speed="1.0" angular_speed="0.0" duration="2.0"/>
+            <ChargeBattery />
+            <SaySomething message="Battery charged!" />
+            <PrintBatteryLevel />
          </Sequence>
       </Fallback>
    </BehaviorTree>
