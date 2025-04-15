@@ -1,0 +1,26 @@
+<root BTCPP_format="4" main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Fallback name="root_fallback">
+      <!-- Sequence for high battery -->
+      <Sequence name="high_battery_sequence">
+        <CheckBattery />
+        <SetColorBasedOnBattery/>
+        <SaySomething message="Battery is good!" />
+        <MoveTo name="MoveToGoal" goal_x="0.2" goal_y="0.0" linear_speed="1.0" angular_speed="0.8" duration="10.0"/>
+        <DrainBattery />
+        <PrintBatteryLevel />
+      </Sequence>
+      <!-- Sequence for low battery -->
+      <Sequence name="low_battery_sequence">
+        <Inverter>
+          <CheckBattery />
+        </Inverter>
+        <SetColorBasedOnBattery/>
+        <MoveTo name="MoveToChargeStation" goal_x="0.2" goal_y="0.2" linear_speed="1.0" angular_speed="0.0" duration="2.0"/>
+        <ChargeBattery />
+        <SaySomething message="Battery charged!" />
+        <PrintBatteryLevel />
+      </Sequence>
+    </Fallback>
+  </BehaviorTree>
+</root>
