@@ -6,7 +6,6 @@ This repository demonstrates a simple implementation of a Behavior Tree (BT) in 
 ## Table of Contents
 - [Overview](#overview)
 - [Setup](#setup)
-- [Nodes](#nodes)
 - [Behavior Tree](#behavior-tree)
 - [Launch Configuration](#launch-configuration)
 - [Running the Example](#running-the-example)
@@ -80,7 +79,7 @@ The behavior tree is defined in an XML file (`turtle_tree.xml`), where the turtl
 3. **Clone the Repository**:
    Clone this repository to your workspace and build the package.
    ```bash
-   git clone https://github.com/your-repo/turtlesim_bt.git
+   git clone https://github.com/sherif1152/Turtlesim_BT.git
    cd turtlesim_bt
    colcon build
    ```
