@@ -9,17 +9,23 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(behaviortree_cpp REQUIRED)
+find_package(behaviortree_cpp_v3 REQUIRED) 
 find_package(turtlesim REQUIRED)
+
 
 add_executable(turtle_bt src/turtle_bt.cpp)
 
+# Proper ament linking
 ament_target_dependencies(turtle_bt
   rclcpp
-  geometry_msgs
-  behaviortree_cpp
+  geometry_msgs 
+  behaviortree_cpp_v3
   turtlesim
 )
+
+# Manually link zmq
+target_link_libraries(turtle_bt zmq)
+
 
 install(TARGETS
   turtle_bt

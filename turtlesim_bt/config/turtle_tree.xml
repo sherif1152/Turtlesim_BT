@@ -1,26 +1,40 @@
 <root BTCPP_format="4" main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
-    <Fallback name="root_fallback">
-      <!-- Sequence for high battery -->
+    <Fallback name="root_fallback"> 
       <Sequence name="high_battery_sequence">
         <CheckBattery />
-        <SetColorBasedOnBattery/>
         <SaySomething message="Battery is good!" />
-        <MoveTo name="MoveToGoal" goal_x="0.2" goal_y="0.0" linear_speed="1.0" angular_speed="0.8" duration="10.0"/>
+        <Parallel name="first_goal_parallel" success_threshold="3" failure_threshold="1">
+          <SetBackgroundColor idgoal="first_goal" />
+          <SetColorLine idgoal="first_goal" />
+          <MoveTo name="MoveToFirstGoal" idgoal="first_goal" status="{result}" goal_x="0.2" goal_y="0.0" linear_speed="1.0" angular_speed="0.8" duration="10.0"/>
+        </Parallel>
+        <SaySomething message="{result}" />
+        <Parallel name="second_goal_parallel" success_threshold="3" failure_threshold="1">
+          <SetBackgroundColor idgoal="second_goal" />
+          <SetColorLine idgoal="second_goal" />
+          <MoveTo name="MoveToSecondGoal" idgoal="second_goal" status="{result}" goal_x="-0.0" goal_y="0.0" linear_speed="2.0" angular_speed="1" duration="10.0"/>
+        </Parallel>
+        <SaySomething message="{result}" />
         <DrainBattery />
-        <PrintBatteryLevel />
       </Sequence>
-      <!-- Sequence for low battery -->
-      <Sequence name="low_battery_sequence">
-        <Inverter>
-          <CheckBattery />
-        </Inverter>
-        <SetColorBasedOnBattery/>
-        <MoveTo name="MoveToChargeStation" goal_x="0.2" goal_y="0.2" linear_speed="1.0" angular_speed="0.0" duration="2.0"/>
-        <ChargeBattery />
-        <SaySomething message="Battery charged!" />
-        <PrintBatteryLevel />
-      </Sequence>
+      <SubTree ID="LowBattery"/>
     </Fallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="LowBattery">
+    <Sequence name="low_battery_sequence">
+      <Inverter>
+        <CheckBattery />
+      </Inverter>
+      <Parallel name="charge_goal_parallel" success_threshold="3" failure_threshold="1">
+        <SetBackgroundColor idgoal="charging" />
+        <SetColorLine idgoal="charging" />
+        <MoveTo name="MoveToChargeStation" idgoal="charging" status="{result}" goal_x="0.2" goal_y="0.2" linear_speed="1.0" angular_speed="0.0" duration="2.0"/>
+      </Parallel>
+      <SaySomething message="{result}" />
+      <ChargeBattery />
+      <SaySomething message="Battery charged!" />
+    </Sequence>
   </BehaviorTree>
 </root>
