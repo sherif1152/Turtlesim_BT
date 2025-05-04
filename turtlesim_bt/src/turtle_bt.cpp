@@ -5,10 +5,12 @@
 #include "behaviortree_cpp_v3/loggers/bt_zmq_publisher.h"
 #include "behaviortree_cpp_v3/loggers/bt_file_logger.h"
 #include "geometry_msgs/msg/twist.hpp"
+#include "turtlesim/msg/pose.hpp"
 #include "turtlesim/srv/set_pen.hpp"
 #include <string>
 #include <chrono>
 #include <thread>
+#include <cmath>
 
 using namespace BT;
 using namespace std::chrono_literals;
@@ -37,6 +39,7 @@ BT::NodeStatus ChargeBattery()
 
     RCLCPP_WARN(rclcpp::get_logger("ChargeBattery"), "Wait for the Battery to charge....");
     std::this_thread::sleep_for(std::chrono::seconds(10));
+    RCLCPP_WARN(rclcpp::get_logger("ChargeBattery"), "Charge Battery... Now to %d%%", battery_level);
     return NodeStatus::SUCCESS;
 }
 
@@ -70,6 +73,10 @@ class MoveTo : public BT::CoroActionNode
 private:
     rclcpp::Node::SharedPtr node_;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;
+    rclcpp::Subscription<turtlesim::msg::Pose>::SharedPtr pose_subscriber_;
+    turtlesim::msg::Pose current_pose_;
+    bool pose_received_ = false;
+    const double threshold = 0.1;
 
 public:
     MoveTo(const std::string &name, const NodeConfiguration &config)
@@ -78,6 +85,15 @@ public:
         auto time_str = std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
         node_ = rclcpp::Node::make_shared("move_turtle_node_" + time_str);
         publisher_ = node_->create_publisher<geometry_msgs::msg::Twist>("/turtle1/cmd_vel", 10);
+
+        pose_subscriber_ = node_->create_subscription<turtlesim::msg::Pose>(
+            "/turtle1/pose", 10, std::bind(&MoveTo::poseCallback, this, std::placeholders::_1));
+    }
+
+    void poseCallback(const turtlesim::msg::Pose::SharedPtr msg)
+    {
+        current_pose_ = *msg;
+        pose_received_ = true;
     }
 
     static BT::PortsList providedPorts()
@@ -99,30 +115,61 @@ public:
         double y = this->getInput<double>("goal_y").value();
         double linear_speed = this->getInput<double>("linear_speed").value();
         double angular_speed = this->getInput<double>("angular_speed").value();
-        double duration = this->getInput<double>("duration").value();
 
         RCLCPP_INFO(node_->get_logger(), "Moving to %s at (%.2f, %.2f)", idgoal.value().c_str(), x, y);
 
-        auto start = std::chrono::steady_clock::now();
 
         while (rclcpp::ok())
         {
-            auto now = std::chrono::steady_clock::now();
-            if (std::chrono::duration_cast<std::chrono::seconds>(now - start).count() >= duration)
+            if (!pose_received_)
+            {
+                rclcpp::spin_some(node_);
+                rclcpp::Rate loop_rate(10);
+                continue;
+            }
+
+            double dx = x - current_pose_.x;
+            double dy = y - current_pose_.y;
+            double distance = std::sqrt(dx * dx + dy * dy);
+
+            if (distance < threshold)
+            {
+                RCLCPP_INFO(node_->get_logger(), "Turtlesim Reached to goal!");
                 break;
+            }
+
+            double target_theta = std::atan2(dy, dx);
+            double angle_error = target_theta - current_pose_.theta;
+
+            // Normalize angle
+            while (angle_error > M_PI)
+                angle_error -= 2 * M_PI;
+            while (angle_error < -M_PI)
+                angle_error += 2 * M_PI;
 
             geometry_msgs::msg::Twist msg;
-            msg.linear.x = linear_speed;
-            msg.angular.z = angular_speed;
+
+            if (std::fabs(angle_error) > 0.1)
+            {
+                msg.angular.z = (angle_error > 0 ? 1 : -1) * angular_speed;
+                msg.linear.x = 0.0;
+            }
+            else
+            {
+                msg.linear.x = linear_speed;
+                msg.angular.z = 0.0;
+            }
+
             publisher_->publish(msg);
             rclcpp::spin_some(node_);
-
-            setStatusRunningAndYield(); // Needed for CoroActionNode
+            rclcpp::Rate loop_rate(10);
+            setStatusRunningAndYield();
         }
 
         geometry_msgs::msg::Twist stop_msg;
         publisher_->publish(stop_msg);
         setOutput("status", "Arrived at " + idgoal.value());
+        pose_received_ = false; // Reset for the next tick
 
         return BT::NodeStatus::SUCCESS;
     }
@@ -299,7 +346,7 @@ int main(int argc, char **argv)
     auto tree = factory.createTreeFromFile("/home/sherif/bt_demo/bt_ros/src/turtlesim_bt/config/turtle_tree.xml");
 
     // BT::StdCoutLogger logger(tree);
-    BT::FileLogger file_logger(tree, "/home/sherif/bt_demo/bt_ros/src/turtlesim_bt/config/bt_log.fbl"); 
+    BT::FileLogger file_logger(tree, "/home/sherif/bt_demo/bt_ros/src/turtlesim_bt/config/bt_log.fbl");
     BT::PublisherZMQ publisher(tree);
 
     rclcpp::Rate rate(2);

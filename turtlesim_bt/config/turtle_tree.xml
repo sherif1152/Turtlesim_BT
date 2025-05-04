@@ -7,13 +7,13 @@
         <Parallel name="first_goal_parallel" success_threshold="3" failure_threshold="1">
           <SetBackgroundColor idgoal="first_goal" />
           <SetColorLine idgoal="first_goal" />
-          <MoveTo name="MoveToFirstGoal" idgoal="first_goal" status="{result}" goal_x="0.2" goal_y="0.0" linear_speed="1.0" angular_speed="0.8" duration="10.0"/>
+          <MoveTo name="MoveToFirstGoal" idgoal="first_goal" status="{result}" goal_x="1" goal_y="1" linear_speed="1.0" angular_speed="0.7" />
         </Parallel>
         <SaySomething message="{result}" />
         <Parallel name="second_goal_parallel" success_threshold="3" failure_threshold="1">
           <SetBackgroundColor idgoal="second_goal" />
           <SetColorLine idgoal="second_goal" />
-          <MoveTo name="MoveToSecondGoal" idgoal="second_goal" status="{result}" goal_x="-0.0" goal_y="0.0" linear_speed="2.0" angular_speed="1" duration="10.0"/>
+          <MoveTo name="MoveToSecondGoal" idgoal="second_goal" status="{result}" goal_x="4" goal_y="9" linear_speed="2.0" angular_speed="0.6" />
         </Parallel>
         <SaySomething message="{result}" />
         <DrainBattery />
@@ -30,7 +30,7 @@
       <Parallel name="charge_goal_parallel" success_threshold="3" failure_threshold="1">
         <SetBackgroundColor idgoal="charging" />
         <SetColorLine idgoal="charging" />
-        <MoveTo name="MoveToChargeStation" idgoal="charging" status="{result}" goal_x="0.2" goal_y="0.2" linear_speed="1.0" angular_speed="0.0" duration="2.0"/>
+        <MoveTo name="MoveToChargeStation" idgoal="charging" status="{result}" goal_x="8" goal_y="3" linear_speed="1.5" angular_speed="0.4" />
       </Parallel>
       <SaySomething message="{result}" />
       <ChargeBattery />

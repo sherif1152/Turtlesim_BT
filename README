@@ -2,13 +2,17 @@
 # ROS2 Behavior Tree for Turtlesim
 
 This repository demonstrates a simple implementation of a Behavior Tree (BT) in ROS2, using a simulated turtle (`turtlesim`). The behavior tree controls the turtle's actions based on its battery level and the environment. The turtle moves toward a charging station if the battery is low, charges itself, and then moves toward a goal if the battery is sufficiently charged.
-
+🎥 Demo
 ## Table of Contents
+- [Demo](#-demo)
 - [Overview](#overview)
 - [Behavior Tree Architecture](#behavior-tree-architecture)
 - [Setup](#setup)
 - [Launch Instructions](#launch-instructions)
 - [Behavior Trees and Groot](#behavior-trees-and-groot)
+
+# 🎥 Demo
+![alt text](turtlesim_bt/image/turtlesim_bt.gif)
 
 # Overview
 
@@ -93,7 +97,8 @@ ros2 launch turtlesim_bt launch_turtlesim_bt.launch.py
 
 You should see the turtle moving, changing pen and background colors, and reacting to battery state changes dynamically.
 
-<img src="turtlesim_bt/image/turtlesim_bt.gif" alt="Turtlesim Behavior Tree Demo" width="400" />
+
+
 
 
 ## Behavior Trees and Groot
