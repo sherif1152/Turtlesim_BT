@@ -2,7 +2,7 @@
 # ROS2 Behavior Tree for Turtlesim
 
 This repository demonstrates a simple implementation of a Behavior Tree (BT) in ROS2, using a simulated turtle (`turtlesim`). The behavior tree controls the turtle's actions based on its battery level and the environment. The turtle moves toward a charging station if the battery is low, charges itself, and then moves toward a goal if the battery is sufficiently charged.
-🎥 Demo
+
 ## Table of Contents
 - [Demo](#-demo)
 - [Overview](#overview)
