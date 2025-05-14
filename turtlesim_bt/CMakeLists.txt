@@ -11,6 +11,7 @@ find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(behaviortree_cpp_v3 REQUIRED) 
 find_package(turtlesim REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 
 
 add_executable(turtle_bt src/turtle_bt.cpp)
@@ -21,6 +22,7 @@ ament_target_dependencies(turtle_bt
   geometry_msgs 
   behaviortree_cpp_v3
   turtlesim
+  ament_index_cpp
 )
 
 # Manually link zmq

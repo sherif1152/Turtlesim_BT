@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include "ament_index_cpp/get_package_share_directory.hpp"
 #include "behaviortree_cpp_v3/bt_factory.h"
 #include "behaviortree_cpp_v3/action_node.h"
 #include "behaviortree_cpp_v3/loggers/bt_cout_logger.h"
@@ -104,8 +105,7 @@ public:
             BT::InputPort<double>("goal_x", "Target X"),
             BT::InputPort<double>("goal_y", "Target Y"),
             BT::InputPort<double>("linear_speed", 1.0, "Linear speed"),
-            BT::InputPort<double>("angular_speed", 0.0, "Angular speed"),
-            BT::InputPort<double>("duration", 10.0, "Duration in seconds")};
+            BT::InputPort<double>("angular_speed", 0.0, "Angular speed")};
     }
 
     BT::NodeStatus tick() override
@@ -117,7 +117,6 @@ public:
         double angular_speed = this->getInput<double>("angular_speed").value();
 
         RCLCPP_INFO(node_->get_logger(), "Moving to %s at (%.2f, %.2f)", idgoal.value().c_str(), x, y);
-
 
         while (rclcpp::ok())
         {
@@ -343,12 +342,16 @@ int main(int argc, char **argv)
     factory.registerNodeType<SetColorLineNode>("SetColorLine");
     factory.registerNodeType<SetBackgroundColorNode>("SetBackgroundColor");
 
-    auto tree = factory.createTreeFromFile("/home/sherif/bt_demo/bt_ros/src/turtlesim_bt/config/turtle_tree.xml");
+    std::string package_share_dir = ament_index_cpp::get_package_share_directory("turtlesim_bt");
+    std::string tree_file_path = package_share_dir + "/config/turtle_tree.xml";
+    auto tree = factory.createTreeFromFile(tree_file_path);
 
-    // BT::StdCoutLogger logger(tree);
-    BT::FileLogger file_logger(tree, "/home/sherif/bt_demo/bt_ros/src/turtlesim_bt/config/bt_log.fbl");
+    std::string log_file_path = package_share_dir + "/config/bt_log.fbl";
+    BT::FileLogger file_logger(tree, log_file_path.c_str());
+
     BT::PublisherZMQ publisher(tree);
 
+    // BT::StdCoutLogger logger(tree);
     rclcpp::Rate rate(2);
     while (rclcpp::ok())
     {
