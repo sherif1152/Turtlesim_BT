@@ -1,7 +1,7 @@
 
 # ROS2 Behavior Tree for Turtlesim
 
-This repository demonstrates a simple implementation of a Behavior Tree (BT) in ROS2, using a simulated turtle (`turtlesim`). The behavior tree controls the turtle's actions based on its battery level and the environment. The turtle moves toward a charging station if the battery is low, charges itself, and then moves toward a goal if the battery is sufficiently charged.
+This repository demonstrates a Behavior Tree (BT) in ROS 2 using a simulated turtle (`turtlesim`). The tree controls the turtle based on its battery level: the turtle visits two goals when the battery is charged, or moves to a charging station and recharges when the battery is low.
 
 ## Table of Contents
 - [Demo](#-demo)
@@ -10,23 +10,24 @@ This repository demonstrates a simple implementation of a Behavior Tree (BT) in 
 - [Setup](#setup)
 - [Launch Instructions](#launch-instructions)
 - [Behavior Trees and Groot](#behavior-trees-and-groot)
+- [Monitoring and Logging](#monitoring-and-logging)
 
 # 🎥 Demo
 ![alt text](turtlesim_bt/image/turtlesim_bt.gif)
 
 # Overview
 
-This example integrates a Behavior Tree with a ROS 2 node (turtle_bt) to simulate decision-making behavior based on battery status. The turtle executes tasks by:
+This example integrates a Behavior Tree with a ROS 2 node (`turtle_bt`) to simulate decision-making behavior based on battery status. The turtle executes tasks by:
 
 - **Checking battery level** and branching behavior accordingly.
 
-- **Navigating to specified goals** with custom parameters (speed, orientation, and duration).
+- **Navigating to specified goals** with configurable target coordinates and linear/angular speeds.
 
 - **Providing visual cues** via dynamic **pen** and **background color changes** to indicate operational state.
 
 - **Displaying status messages** to the console for easier debugging and state tracking.
 
-This behavior is orchestrated using a Behavior Tree (defined in turtle_tree.xml), which is modular, readable, and easy to extend.
+This behavior is orchestrated using a Behavior Tree (defined in `config/turtle_tree.xml`), which is modular, readable, and easy to extend. The tree uses BehaviorTree.CPP v4 XML format and a `Fallback` to select the high-battery or low-battery path.
 
 
 # Behavior Tree Architecture
@@ -35,47 +36,52 @@ This behavior is orchestrated using a Behavior Tree (defined in turtle_tree.xml)
 The Behavior Tree is defined in XML and consists of two major paths:
 
 ### 1. High Battery Path
-Executed when the battery level is **above 50%**:
+Executed when the battery level is **at least 50%**:
 - Say: "Battery is good!"
 - Navigate to the **first goal**
-  - Set pen color to **green**
-  - Set background to **pink-purple**
+  - Set the pen color to **green**
+  - Set the background to **pink-purple**
 - Say arrival message
 - Navigate to the **second goal**
-  - Set pen color to **purple**
-  - Set background to **light blue**
+  - Set the pen color to **purple**
+  - Set the background to **light blue**
 - Say arrival message
-- Drain the battery
+- Drain the battery by 20 percentage points
 
 ### 2. Low Battery Path
 Executed when the battery is **below 50%**:
 - Move to the charging station
-  - Set pen color to **gold**
-  - Set background to **dark slate gray**
-- Say: "Going to charge..."
-- Charge the battery
+  - Set the pen color to **gold**
+  - Set the background to **dark slate gray**
+- Report arrival at the charging station
+- Increase the battery level by 30 percentage points, capped at 100%
 - Say: "Battery charged!"
 
-All logic is modular and defined via condition and action nodes in the XML.
+Each group of visual and navigation actions runs in a `Parallel` node with `success_count="3"` and `failure_count="1"`. The low-battery behavior is defined as the `LowBattery` subtree and is selected by the root fallback when the high-battery sequence fails.
 
 ![alt text](turtlesim_bt/image/bt_turtle.svg)
 ---
 
 # Setup
 
-1. **Install ROS2**: This package was developed using ROS2. Make sure that you have ROS2 installed on your machine.
+1. **Install ROS 2**: This package is configured for ROS 2 Jazzy. Install ROS 2 and source its environment before building.
 
 2. **Install Dependencies**:
+   - `rclcpp`: ROS 2 C++ client library.
    - `geometry_msgs`: Provides message types for motion commands.
    - `turtlesim`: Simulates a turtle in a 2D space.
-   - [`behaviortree_cpp_v3`](https://github.com/BehaviorTree/BehaviorTree.CPP): Used for creating the behavior tree.
-   - [`Groot`](https://github.com/BehaviorTree/Groot) : For visual editor and debugger for Behavior Trees
+   - `ament_index_cpp`: Locates the installed package configuration.
+   - [`behaviortree_cpp`](https://github.com/BehaviorTree/BehaviorTree.CPP): BehaviorTree.CPP v4 runtime.
+   - [`btick`](https://github.com/BehaviorTree/btick): Behavior Tree monitoring and recording.
+   - `nav2_msgs` and `std_msgs`: ROS 2 message dependencies used by the package.
+   - [`Groot`](https://github.com/BehaviorTree/Groot): Visual editor and debugger for Behavior Trees.
 
 3. **Clone the Repository**:
-   Clone this repository to your workspace and build the package.
+   Clone this repository into the `src` directory of a ROS 2 workspace and build the package.
    ```bash
-   git clone https://github.com/sherif1152/Turtlesim_BT.git
-   cd turtlesim_bt
+   cd ~/your_ros2_ws/src
+   git clone https://github.com/sheriffathey/Turtlesim_BT.git
+   cd ..
    colcon build
    ```
 
@@ -84,9 +90,6 @@ All logic is modular and defined via condition and action nodes in the XML.
    ```bash
    source install/setup.bash
    ```
-   ----
-
-
 
 # Launch Instructions
 
@@ -95,7 +98,7 @@ Run the demo with the following command:
 ros2 launch turtlesim_bt launch_turtlesim_bt.launch.py
 ```
 
-You should see the turtle moving, changing pen and background colors, and reacting to battery state changes dynamically.
+You should see the turtle moving, changing pen and background colors, and reacting to battery state changes dynamically. The executable loads `config/turtle_tree.xml` from the installed package share directory.
 
 
 
@@ -118,18 +121,20 @@ Behavior Trees are composed of control nodes (such as **Sequence**, **Fallback**
 
 - CheckBattery is a condition node
 
-- MoveTo, SetPen, SetBackground, Speak, and ChargeBattery are action nodes
+- MoveTo, SetColorLine, SetBackgroundColor, SaySomething, ChargeBattery, and DrainBattery are action nodes
 
 - A **Sequence** node (→) executes its children from left to right and fails if any child fails.
 
 - A **Fallback** node (?) attempts children in order and succeeds when the first child succeeds.
+
+- A **Parallel** node executes the visual and navigation actions together. In this project, all three children must succeed (`success_count="3"`), and one child failure fails the group (`failure_count="1"`).
 
 These provide clean and modular logic to build decision-making flows.
 
 ### Using Groot
 
 #### What is Groot?
-**Groot** is a graphical interface developed by the BehaviorTree.CPP authors to:
+**Groot2** is a graphical interface developed by the BehaviorTree.CPP authors to:
 
 - Design Behavior Trees visually using XML
 
@@ -139,25 +144,20 @@ These provide clean and modular logic to build decision-making flows.
 
 ### 📡 Real-Time Monitoring in Groot
 
-To visualize and debug the Behavior Tree in real time, Groot communicates with your application using **ZeroMQ (ZMQ)** over the local network.
+To visualize and debug the Behavior Tree in real time, Groot2 communicates with the application through the `Groot2Publisher` configured by the runner.
 
 #### 🛠️ How to Connect Groot
-Make sure your BT application includes this line:
+The runner creates the Groot2 publisher on port `1669`:
 
 ```cpp
-BT::PublisherZMQ publisher(tree);
+BT::Groot2Publisher publisher(tree, 1669);
 ```
 
 1. Run your ROS 2 BT application.
 
-2. Open Groot and click on "`Monitor`" when prompted.
+2. Open Groot2 and connect to the running publisher.
 
-3. Groot will automatically connect to:
-    - **`Server IP`** : **`localhost`** (or your machine's IP if connecting remotely)
-
-    - **`Publisher Port`** : **`1666`** Live node status updates
-
-    - **`Server Port`** : **`1667`** Behavior tree structure
+3. Use **`localhost:1669`** for a local run, or the host machine's address and port when connecting remotely.
 
 You will see live updates with color-coded statuses:
 
@@ -169,7 +169,6 @@ You will see live updates with color-coded statuses:
 
 ![alt text](turtlesim_bt/image/Real-Time.png)
 
----------
 ### 📼 Log Replay in Groot
 
 Groot includes a powerful **Log Replay** feature, which lets you visualize and analyze Behavior Tree executions **after they happen**, using saved logs.
@@ -185,20 +184,20 @@ Groot includes a powerful **Log Replay** feature, which lets you visualize and a
 
 ### 🛠 How to Use Log Replay
 1. Generate a Log File
-    In C++ code, make sure you log the BT execution using the `FileLogger`:
+    The runner records execution through `btick`:
 
     ```cpp
-    BT::FileLogger file_logger(tree, "bt_log.fbl");
+    btick::Monitor monitor(node, tree, "TurtleTree", tree_file_path);
+    btick::Logs logs(monitor, "my_recording.json", true);
     ```
 
-    >💡 This generates a .fbl log file (e.g., bt_log.fbl) in your working directory.
-    Ensure the path is writable and doesn't use hardcoded user-specific paths like /home/username.
+    >💡 This generates a JSON recording. Configure the output path to a writable location on your machine.
 
-2. Open Groot and click on "`Log Replay`" when prompted.
+2. Open Groot2 and select its log/replay view.
 
 3. Load Your Log File
 
-    - Select the .fbl file you previously recorded (e.g., bt_log.fbl).
+    - Select the JSON file produced by `btick`.
 
     - Groot will load your behavior tree and the recorded execution timeline.
 
@@ -213,3 +212,13 @@ Groot includes a powerful **Log Replay** feature, which lets you visualize and a
 ![alt text](turtlesim_bt/image/Log-Replay.png)
 
 This integration makes it easy to iterate on logic design and monitor the runtime status of each node, including color-coded feedback and status updates.
+
+## Monitoring and Logging
+
+The node uses:
+
+- `btick::Monitor` to observe the `TurtleTree` execution.
+- `btick::Logs` to record execution data as JSON.
+- `BT::Groot2Publisher` on port `1669` for live Groot2 visualization.
+
+The sample source currently contains a machine-specific recording path. Change that path in `src/turtle_bt.cpp` to a writable location before enabling persistent recordings on another machine.

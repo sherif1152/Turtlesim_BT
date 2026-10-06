@@ -4,13 +4,13 @@
       <Sequence name="high_battery_sequence">
         <CheckBattery />
         <SaySomething message="Battery is good!" />
-        <Parallel name="first_goal_parallel" success_threshold="3" failure_threshold="1">
+        <Parallel name="first_goal_parallel" success_count="3" failure_count="1">
           <SetBackgroundColor idgoal="first_goal" />
           <SetColorLine idgoal="first_goal" />
           <MoveTo name="MoveToFirstGoal" idgoal="first_goal" status="{result}" goal_x="1" goal_y="1" linear_speed="1.0" angular_speed="0.7" />
         </Parallel>
         <SaySomething message="{result}" />
-        <Parallel name="second_goal_parallel" success_threshold="3" failure_threshold="1">
+        <Parallel name="second_goal_parallel" success_count="3" failure_count="1">
           <SetBackgroundColor idgoal="second_goal" />
           <SetColorLine idgoal="second_goal" />
           <MoveTo name="MoveToSecondGoal" idgoal="second_goal" status="{result}" goal_x="4" goal_y="9" linear_speed="2.0" angular_speed="0.6" />
@@ -27,7 +27,7 @@
       <Inverter>
         <CheckBattery />
       </Inverter>
-      <Parallel name="charge_goal_parallel" success_threshold="3" failure_threshold="1">
+      <Parallel name="charge_goal_parallel" success_count="3" failure_count="1">
         <SetBackgroundColor idgoal="charging" />
         <SetColorLine idgoal="charging" />
         <MoveTo name="MoveToChargeStation" idgoal="charging" status="{result}" goal_x="8" goal_y="3" linear_speed="1.5" angular_speed="0.4" />
@@ -38,3 +38,5 @@
     </Sequence>
   </BehaviorTree>
 </root>
+
+
